@@ -21,7 +21,21 @@ export const IntentHistory = ({ intents }: IntentHistoryProps) => {
                 <Clock className="h-4 w-4 text-secondary animate-pulse mt-1 flex-shrink-0" />
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground line-clamp-2">{intent.text}</p>
+                <p className="text-sm text-foreground font-medium line-clamp-2">{intent.text}</p>
+                {intent.response && (
+                  <p className="text-sm text-primary/80 mt-1 line-clamp-2 italic">
+                    → {intent.response}
+                  </p>
+                )}
+                {intent.entities && intent.entities.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {intent.entities.slice(0, 3).map((entity, idx) => (
+                      <span key={idx} className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                        {entity.word}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-muted-foreground">
                     {intent.timestamp.toLocaleTimeString()}

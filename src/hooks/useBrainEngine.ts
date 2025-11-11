@@ -3,6 +3,30 @@ import { Intent, SystemMetrics, AIModel, WorkflowStep } from '@/types/brain';
 import { brainStorage } from '@/lib/storage';
 import { useLocalAI } from './useLocalAI';
 
+// Generate intelligent responses based on intent category
+const generateResponse = (
+  category: Intent['category'], 
+  text: string, 
+  entities: any[]
+): string => {
+  const entityText = entities.length > 0 
+    ? entities.map(e => `"${e.word}" (${e.entity})`).join(', ')
+    : 'keine spezifischen Entities';
+
+  switch (category) {
+    case 'query':
+      return `Ich analysiere deine Anfrage "${text}". Erkannte Entities: ${entityText}`;
+    case 'command':
+      return `Befehl verstanden! Führe "${text}" aus. Erkannte Entities: ${entityText}`;
+    case 'workflow':
+      return `Workflow gestartet für "${text}". Erkannte Entities: ${entityText}`;
+    case 'system':
+      return `System-Operation: ${text}. Erkannte Entities: ${entityText}`;
+    default:
+      return `Verarbeitet: ${text}`;
+  }
+};
+
 export const useBrainEngine = () => {
   const { 
     computeEmbedding, 
@@ -59,23 +83,24 @@ export const useBrainEngine = () => {
     setIsProcessing(true);
     
     // Use AI models if loaded
-    let confidence = 0.7 + Math.random() * 0.3;
-    let category: Intent['category'] = 'command';
+    let aiConfidence = 0.7 + Math.random() * 0.3;
+    let aiCategory: Intent['category'] = 'command';
     let vector: number[] | undefined;
+    let detectedEntities: any[] = [];
     
     try {
       // Classify intent with AI
       if (loadedModels.includes('classifier')) {
         const classification = await classifyIntentAI(text);
         if (classification) {
-          confidence = classification.score;
+          aiConfidence = classification.score;
           // Map sentiment to category
-          category = classification.label === 'POSITIVE' ? 'workflow' : 
+          aiCategory = classification.label === 'POSITIVE' ? 'workflow' : 
                      text.toLowerCase().includes('zeig') || text.toLowerCase().includes('was') ? 'query' : 'command';
         }
       } else {
         // Fallback to keyword-based
-        category = text.toLowerCase().includes('zeig') || text.toLowerCase().includes('was') ? 'query' : 'command';
+        aiCategory = text.toLowerCase().includes('zeig') || text.toLowerCase().includes('was') ? 'query' : 'command';
       }
       
       // Compute embedding
@@ -89,6 +114,7 @@ export const useBrainEngine = () => {
       // Extract entities for knowledge graph
       if (loadedModels.includes('ner')) {
         const entities = await extractEntities(text);
+        detectedEntities = entities;
         if (entities.length > 0) {
           console.log('Entities detected:', entities.map(e => `${e.word} (${e.entity})`).join(', '));
         }
@@ -97,14 +123,19 @@ export const useBrainEngine = () => {
       console.error('AI processing error:', error);
     }
     
+    // Generate AI response based on intent
+    const response = generateResponse(aiCategory, text, detectedEntities);
+
     const newIntent: Intent = {
       id: Date.now().toString(),
       text,
-      confidence,
-      category,
+      confidence: aiConfidence,
+      category: aiCategory,
       timestamp: new Date(),
       processed: false,
       vector,
+      response,
+      entities: detectedEntities,
     };
 
     setIntents(prev => [...prev, newIntent]);

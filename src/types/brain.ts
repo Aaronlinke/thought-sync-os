@@ -6,6 +6,8 @@ export interface Intent {
   timestamp: Date;
   processed: boolean;
   vector?: number[];
+  response?: string;
+  entities?: { word: string; entity: string; score: number }[];
 }
 
 export interface KnowledgeNode {
