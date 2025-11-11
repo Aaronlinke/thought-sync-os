@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Intent, SystemMetrics, AIModel, WorkflowStep } from '@/types/brain';
+import { brainStorage } from '@/lib/storage';
 
 export const useBrainEngine = () => {
   const [intents, setIntents] = useState<Intent[]>([]);
@@ -18,6 +19,17 @@ export const useBrainEngine = () => {
   ]);
   const [currentWorkflow, setCurrentWorkflow] = useState<WorkflowStep[] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Load intents from storage on mount
+  useEffect(() => {
+    brainStorage.init().then(() => {
+      brainStorage.getIntents().then(loadedIntents => {
+        if (loadedIntents.length > 0) {
+          setIntents(loadedIntents);
+        }
+      });
+    });
+  }, []);
 
   // Simulate system metrics
   useEffect(() => {
@@ -46,6 +58,10 @@ export const useBrainEngine = () => {
     };
 
     setIntents(prev => [...prev, newIntent]);
+    
+    // Save to storage
+    await brainStorage.saveIntent(newIntent);
+    
     setIsProcessing(true);
 
     // Simulate intent processing
