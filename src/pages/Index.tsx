@@ -59,9 +59,9 @@ const Index = () => {
             />
             <h1 className="text-5xl font-bold text-foreground text-glow">LOCAL BRAIN</h1>
           </div>
-          <p className="text-lg text-muted-foreground">Aether Cognitive System v3.0</p>
+          <p className="text-lg text-muted-foreground">Aether Cognitive System</p>
           <div className="inline-block px-4 py-1 rounded-full bg-primary/10 border border-primary/30">
-            <span className="text-sm text-primary font-mono">Fully Autonomous • Edge AI • Zero Cloud</span>
+            <span className="text-sm text-primary font-mono">Browser AI • WebGPU Accelerated • Privacy First</span>
           </div>
         </div>
 
@@ -99,8 +99,8 @@ const Index = () => {
 
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground pt-8 border-t border-border/30">
-          <p>Powered by Cognitive Orchestration Layer • Hyper-Compressed Knowledge Graph • Ultra-Lightweight LLM Core</p>
-          <p className="mt-1">All processing happens locally on your device • No data leaves your system</p>
+          <p>Powered by Hugging Face Transformers • WebGPU Acceleration • IndexedDB Persistence</p>
+          <p className="mt-1">All processing happens locally in your browser • Zero cloud dependency • Complete privacy</p>
         </div>
       </div>
     </div>

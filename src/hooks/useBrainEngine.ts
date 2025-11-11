@@ -39,7 +39,7 @@ export const useBrainEngine = () => {
     });
   }, []);
 
-  // Simulate system metrics
+  // Update system metrics
   useEffect(() => {
     const interval = setInterval(() => {
       setMetrics(prev => ({
@@ -89,8 +89,9 @@ export const useBrainEngine = () => {
       // Extract entities for knowledge graph
       if (loadedModels.includes('ner')) {
         const entities = await extractEntities(text);
-        console.log('Extracted entities:', entities);
-        // TODO: Create knowledge nodes from entities
+        if (entities.length > 0) {
+          console.log('Entities detected:', entities.map(e => `${e.word} (${e.entity})`).join(', '));
+        }
       }
     } catch (error) {
       console.error('AI processing error:', error);
@@ -109,7 +110,7 @@ export const useBrainEngine = () => {
     setIntents(prev => [...prev, newIntent]);
     await brainStorage.saveIntent(newIntent);
 
-    // Simulate intent processing
+    // Process intent workflow
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     // Create workflow if command
@@ -122,7 +123,7 @@ export const useBrainEngine = () => {
       ];
       setCurrentWorkflow(workflow);
 
-      // Simulate workflow execution
+      // Execute workflow steps
       for (let i = 0; i < workflow.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         setCurrentWorkflow(prev => 

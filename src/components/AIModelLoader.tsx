@@ -98,7 +98,7 @@ export const AIModelLoader = () => {
       
       <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
         <p className="text-xs text-muted-foreground">
-          💡 Models run entirely in your browser using WebGPU. First load may take time.
+          🚀 Models run entirely in your browser with WebGPU acceleration. First load downloads and caches models.
         </p>
       </div>
     </Card>
