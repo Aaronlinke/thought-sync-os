@@ -5,6 +5,7 @@ export interface Intent {
   category: 'query' | 'command' | 'workflow' | 'system';
   timestamp: Date;
   processed: boolean;
+  vector?: number[];
 }
 
 export interface KnowledgeNode {

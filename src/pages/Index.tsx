@@ -7,6 +7,7 @@ import { WorkflowVisualizer } from '@/components/WorkflowVisualizer';
 import { ModelManager } from '@/components/ModelManager';
 import { IntentHistory } from '@/components/IntentHistory';
 import { SettingsPanel } from '@/components/SettingsPanel';
+import { AIModelLoader } from '@/components/AIModelLoader';
 import { Brain } from 'lucide-react';
 import { brainStorage } from '@/lib/storage';
 
@@ -85,6 +86,7 @@ const Index = () => {
           {/* Left Column */}
           <div className="space-y-6">
             <SystemMetrics metrics={metrics} />
+            <AIModelLoader />
             <ModelManager models={models} onToggle={toggleModel} />
           </div>
 

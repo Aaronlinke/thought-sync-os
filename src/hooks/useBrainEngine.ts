@@ -1,14 +1,22 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Intent, SystemMetrics, AIModel, WorkflowStep } from '@/types/brain';
 import { brainStorage } from '@/lib/storage';
+import { useLocalAI } from './useLocalAI';
 
 export const useBrainEngine = () => {
+  const { 
+    computeEmbedding, 
+    classifyIntent: classifyIntentAI, 
+    extractEntities,
+    loadedModels 
+  } = useLocalAI();
+  
   const [intents, setIntents] = useState<Intent[]>([]);
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpuUsage: 0,
     memoryUsage: 0,
     npuUsage: 0,
-    activeModels: 0,
+    activeModels: loadedModels.length,
     knowledgeNodes: 127,
     intentQueue: 0,
   });
@@ -38,7 +46,7 @@ export const useBrainEngine = () => {
         cpuUsage: Math.max(10, Math.min(90, prev.cpuUsage + (Math.random() - 0.5) * 10)),
         memoryUsage: Math.max(20, Math.min(85, prev.memoryUsage + (Math.random() - 0.5) * 5)),
         npuUsage: isProcessing ? Math.max(40, Math.min(95, prev.npuUsage + (Math.random() - 0.5) * 15)) : Math.max(5, prev.npuUsage - 5),
-        activeModels: models.filter(m => m.loaded).length,
+        activeModels: loadedModels.length + models.filter(m => m.loaded).length,
         knowledgeNodes: prev.knowledgeNodes + Math.floor(Math.random() * 3),
         intentQueue: intents.filter(i => !i.processed).length,
       }));
@@ -48,21 +56,58 @@ export const useBrainEngine = () => {
   }, [models, intents, isProcessing]);
 
   const processIntent = useCallback(async (text: string) => {
+    setIsProcessing(true);
+    
+    // Use AI models if loaded
+    let confidence = 0.7 + Math.random() * 0.3;
+    let category: Intent['category'] = 'command';
+    let vector: number[] | undefined;
+    
+    try {
+      // Classify intent with AI
+      if (loadedModels.includes('classifier')) {
+        const classification = await classifyIntentAI(text);
+        if (classification) {
+          confidence = classification.score;
+          // Map sentiment to category
+          category = classification.label === 'POSITIVE' ? 'workflow' : 
+                     text.toLowerCase().includes('zeig') || text.toLowerCase().includes('was') ? 'query' : 'command';
+        }
+      } else {
+        // Fallback to keyword-based
+        category = text.toLowerCase().includes('zeig') || text.toLowerCase().includes('was') ? 'query' : 'command';
+      }
+      
+      // Compute embedding
+      if (loadedModels.includes('embedder')) {
+        const embedding = await computeEmbedding(text);
+        if (embedding) {
+          vector = embedding;
+        }
+      }
+      
+      // Extract entities for knowledge graph
+      if (loadedModels.includes('ner')) {
+        const entities = await extractEntities(text);
+        console.log('Extracted entities:', entities);
+        // TODO: Create knowledge nodes from entities
+      }
+    } catch (error) {
+      console.error('AI processing error:', error);
+    }
+    
     const newIntent: Intent = {
       id: Date.now().toString(),
       text,
-      confidence: 0.7 + Math.random() * 0.3,
-      category: text.toLowerCase().includes('zeig') || text.toLowerCase().includes('was') ? 'query' : 'command',
+      confidence,
+      category,
       timestamp: new Date(),
       processed: false,
+      vector,
     };
 
     setIntents(prev => [...prev, newIntent]);
-    
-    // Save to storage
     await brainStorage.saveIntent(newIntent);
-    
-    setIsProcessing(true);
 
     // Simulate intent processing
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -96,7 +141,7 @@ export const useBrainEngine = () => {
       prev.map(i => i.id === newIntent.id ? { ...i, processed: true } : i)
     );
     setIsProcessing(false);
-  }, []);
+  }, [classifyIntentAI, computeEmbedding, extractEntities, loadedModels]);
 
   const toggleModel = useCallback((modelId: string) => {
     setModels(prev => 
