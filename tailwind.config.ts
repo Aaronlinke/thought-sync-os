@@ -57,6 +57,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        aether: {
+          glow: "hsl(var(--aether-glow))",
+          purple: "hsl(var(--aether-purple))",
+          deep: "hsl(var(--aether-deep))",
+          surface: "hsl(var(--aether-surface))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
